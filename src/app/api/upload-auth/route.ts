@@ -17,6 +17,8 @@ export async function GET() {
     try {
         return Response.json({ token, expire, signature, publicKey: process.env.IMAGEKIT_PUBLIC_KEY })
     } catch (error) {
+        console.log(error);
+        
         return NextResponse.json(
             {error: "Imagekit Auth failed"},
             {status: 500}

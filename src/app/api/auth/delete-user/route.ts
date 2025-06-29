@@ -1,13 +1,13 @@
 import { authOptions } from "@/lib/auth";
 import { getServerSession } from "next-auth";
-import { NextRequest, NextResponse } from "next/server";
+import {  NextResponse } from "next/server";
 import { connectDb } from "@/lib/dbConect";
 import User from "@/models/User";
 import Posts from "@/models/Posts";
 import ImageKit from "imagekit";
 import Comment from "@/models/Comment";
 
-export async function DELETE(request: NextRequest) {
+export async function DELETE() {
 
     const imagekit = new ImageKit({
         publicKey : process.env.IMAGEKIT_PUBLIC_KEY!,

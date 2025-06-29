@@ -1,6 +1,6 @@
 "use client";
 
-import { ThreeDMarqueeDemo } from "@/components/background-1";
+
 import { BackgroundBeams } from "@/components/background-beams";
 import FeaturesSection from "@/components/FeaturesSection";
 import { TypewriterEffectDemo } from "@/components/typewriter";
@@ -10,7 +10,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 export default function HomePage() {
-  const { data: session, status } = useSession();
+  const {  status } = useSession();
   const router = useRouter();
 
   useEffect(() => {

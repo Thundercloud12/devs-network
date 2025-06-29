@@ -20,7 +20,7 @@ export default function Register() {
   const { showNotification } = useNotification();
 
   // Debounce the username input value
-  const [debouncedUsername, setDebouncedUsername] = useDebounceValue(username, 500); // Debounce for 500ms
+  const [debouncedUsername] = useDebounceValue(username, 500); // Debounce for 500ms
 
 
   const checkUsernameUniqueness = useDebounceCallback(async (usernameToCheck: string) => {

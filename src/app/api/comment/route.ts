@@ -1,7 +1,7 @@
 import { authOptions } from "@/lib/auth";
 import { connectDb } from "@/lib/dbConect";
 import Comment from "@/models/Comment";
-import Posts, { Post,  } from "@/models/Posts";
+import Posts from "@/models/Posts";
 import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -30,7 +30,8 @@ export async function GET(req: NextRequest) {
         }
         return NextResponse.json(comments)
     } catch (error) {
-
+        console.log(error);
+        
         return NextResponse.json(
             {error: "Failed to fetch posts"}, {status: 200}
         )

@@ -24,6 +24,8 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ liked: !!liked, count });
   } catch (err) {
+    console.log(err);
+    
     return NextResponse.json({ error: "Failed to fetch like info" }, { status: 500 });
   }
 }

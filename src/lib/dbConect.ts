@@ -1,52 +1,56 @@
-import mongoose from "mongoose"
-import { Connection } from "mongoose"
-
-declare global{
-    var mongoose: {
-        conn: Connection | null
-        promise: Promise<Connection> | null
-    } | null
-}
+import mongoose, { Connection } from "mongoose";
 
 const MONGODB_URL = process.env.MONGODB_URL!;
 
-
-
-if(!MONGODB_URL) {
-    throw new Error("Please define mongodb uri in env")
+if (!MONGODB_URL) {
+  throw new Error("Please define MONGODB_URL in your environment variables");
 }
 
-let cachedConnection = global.mongoose;
-
-if(!cachedConnection) {
-    cachedConnection = global.mongoose = {conn:null, promise: null}
+// Extend globalThis to avoid using `var`
+declare global {
+  interface Global {
+    _mongoose?: {
+      conn: Connection | null;
+      promise: Promise<Connection> | null;
+    };
+  }
 }
 
-export async function connectDb() {
-  if(cachedConnection?.conn){
-    return cachedConnection.conn
-  }  
+// Type-safe way to use global state
+const globalWithMongoose = globalThis as typeof globalThis & {
+  _mongoose?: {
+    conn: Connection | null;
+    promise: Promise<Connection> | null;
+  };
+};
 
-  if(!cachedConnection?.promise) {
-    const ops = {
-        bufferCommands: true,
-        maxPoolSize: 10,
-        
-    }
+if (!globalWithMongoose._mongoose) {
+  globalWithMongoose._mongoose = {
+    conn: null,
+    promise: null,
+  };
+}
 
-    cachedConnection!.promise =  mongoose.connect(MONGODB_URL, ops).then(()=> mongoose.connection)
+const cached = globalWithMongoose._mongoose;
+
+export async function connectDb(): Promise<Connection> {
+  if (cached.conn) return cached.conn;
+
+  if (!cached.promise) {
+    cached.promise = mongoose.connect(MONGODB_URL, {
+      bufferCommands: false,
+      maxPoolSize: 10,
+    }).then(() => mongoose.connection);
   }
 
   try {
-    cachedConnection!.conn = await cachedConnection!.promise
-  } catch (error) {
-    console.log(error);
+    cached.conn = await cached.promise;
+  } catch (err) {
+    console.log(err);
     
-    cachedConnection!.promise = null
-    throw new Error("Error in dbConnect")
-    
-    
+    cached.promise = null;
+    throw new Error("MongoDB connection failed");
   }
 
-  return cachedConnection?.conn
+  return cached.conn;
 }

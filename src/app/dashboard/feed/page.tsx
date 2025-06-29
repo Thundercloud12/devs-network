@@ -1,9 +1,7 @@
 import Sidebar from "@/components/Sidebar";
 import VideoFeed from "@/components/VideoFeed";
 import { apiClient } from "@/lib/api-client";
-import { Post } from "@/models/Posts";
-import { getSession, useSession } from "next-auth/react";
-import { useEffect } from "react";
+
  // Fetch posts
 
 export default async function FeedPage() {

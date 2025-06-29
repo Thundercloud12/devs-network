@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import mongoose from "mongoose";
 import CodingRoom from "@/models/CodingRoom"; // Adjust path as needed
 import { connectDb } from "@/lib/dbConect";
 

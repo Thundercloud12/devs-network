@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectDb } from "@/lib/dbConect";
 import User from "@/models/User";
-import { error } from "console";
 
 export async function POST(request: NextRequest) {
     try {

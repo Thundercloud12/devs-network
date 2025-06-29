@@ -1,9 +1,8 @@
 "use client";
 
-import Link from "next/link";
+
 import { useState } from "react";
 import { useSession, signOut } from "next-auth/react";
-import { Home } from "lucide-react";
 import { useNotification } from "@/components/Notification";
 import { apiClient } from "@/lib/api-client";
 import SessionWrapper from "@/components/SessionWrapper";
