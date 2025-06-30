@@ -19,10 +19,16 @@ export async function POST(
 }
 
 export async function GET(
-  req: NextRequest,
+  request: NextRequest,
   { params }: { params: { id: string } }
-): Promise<NextResponse> {
-  const messages = await redis.lrange<string>(`room:${params.id}:chat`, 0, -1);
+) {
+  const { id } = params;
+
+  // Example: Use query param ?limit=5
+  const limit = parseInt(request.nextUrl.searchParams.get("limit") || "20");
+
+  const messages = await redis.lrange<string>(`room:${id}:chat`, -limit, -1); // last `limit` messages
   const parsedMessages = messages.map((m) => JSON.parse(m));
+
   return NextResponse.json({ chat: parsedMessages });
 }
