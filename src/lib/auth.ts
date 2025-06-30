@@ -18,8 +18,10 @@ export const authOptions: NextAuthOptions= {
                 }
 
                 try {
-                   await connectDb();
-                   console.log("Connected to MongoDB");
+                    
+                   console.log("🔗 Connecting to MongoDB...");
+                    await connectDb();
+                    console.log("✅ DB connected");
                    const user = await User.findOne({username: credentials.username})
 
                    if(!user) {
