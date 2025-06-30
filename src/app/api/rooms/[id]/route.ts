@@ -29,8 +29,11 @@ export async function PUT(req: NextRequest) {
   return NextResponse.json(room);
 }
 
-export async function DELETE(req: NextRequest,{ params }: { params: { id: string } }) {
-  await CodingRoom.findByIdAndDelete(params.id);
+export async function DELETE(req: NextRequest) {
+
+  const searchParams = request.nextUrl.searchParams;
+  const id = searchParams.get('id');
+  await CodingRoom.findByIdAndDelete(id);
 
   return NextResponse.json({ message: 'Deleted' });
 }
