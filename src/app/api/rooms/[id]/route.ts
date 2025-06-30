@@ -6,10 +6,13 @@ import { connectDb } from "@/lib/dbConect";
 
 
 // GET /api/rooms/[id]
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest) {
+
+  const searchParams = request.nextUrl.searchParams;
+  const id = searchParams.get('id');
 
   await connectDb()
-  const room = await CodingRoom.findById(params.id).populate("host participants");
+  const room = await CodingRoom.findById(id).populate("host participants");
   if (!room) {
     return NextResponse.json({ error: "Room not found" }, { status: 404 });
   }
@@ -17,9 +20,10 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 }
 
 // app/api/rooms/[id]/route.ts
-export async function PUT(req: NextRequest, context: { params: { id: string } }) {
+export async function PUT(req: NextRequest) {
   await connectDb()
-  const { id } = await context.params;
+  const searchParams = request.nextUrl.searchParams;
+  const id = searchParams.get('id');
   const data = await req.json();
   const room = await CodingRoom.findByIdAndUpdate(id, { code: data.code }, { new: true });
   return NextResponse.json(room);
