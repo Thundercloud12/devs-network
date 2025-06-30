@@ -46,7 +46,7 @@ export async function connectDb(): Promise<Connection> {
   try {
     cached.conn = await cached.promise;
   } catch (err) {
-    console.log(err);
+    console.log(err, "MONGODB");
     
     cached.promise = null;
     throw new Error("MongoDB connection failed");
