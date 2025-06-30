@@ -11,7 +11,7 @@ import mime from "mime-types";
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY!;
 const IMAGEKIT_PRIVATE_API_KEY = process.env.IMAGEKIT_PRIVATE_KEY!;
 const IMAGEKIT_PUBLIC_API_KEY = process.env.IMAGEKIT_PUBLIC_KEY!;
-const IMAGEKIT_URL_ENDPOINT = process.env.IMAGE_KIT_URL!;
+const IMAGEKIT_URL_ENDPOINT = process.env.IMAGEKIT_URL_ENDPOINT!;
 
 const imagekit = new ImageKit({
   publicKey: IMAGEKIT_PUBLIC_API_KEY,
