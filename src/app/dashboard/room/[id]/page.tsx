@@ -1,18 +1,31 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { io } from 'socket.io-client';
+import { io, Socket } from 'socket.io-client';
 import Editor from '@monaco-editor/react';
 import { useSession } from 'next-auth/react';
 
-let socket: any;
+let socket: Socket;
 
 export default function RoomPage() {
   const { id } = useParams();
   const { data: session } = useSession();
   const router = useRouter();
 
-  const [room, setRoom] = useState<any>(null);
+   type Room = {
+  _id: string;
+  title: string;
+  description: string;
+  code: string;
+  host: {
+    _id: string;
+    username: string;
+  };
+  language: string;
+  isLive: boolean;
+};
+
+  const [room, setRoom] = useState<Room | null>(null);
   const [code, setCode] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [isHost, setIsHost] = useState(false);

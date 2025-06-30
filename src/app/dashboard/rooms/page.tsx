@@ -7,7 +7,19 @@ import { FaPlus } from 'react-icons/fa';
 import { RiCloseLine } from 'react-icons/ri';
 
 export default function RoomsList() {
-  const [rooms, setRooms] = useState([] as any[]);
+  type Room = {
+    _id: string;
+    title: string;
+    description: string;
+    code: string;
+    host: {
+      _id: string;
+      username: string;
+    };
+    language: string;
+    isLive: boolean;
+  };
+  const [rooms, setRooms] = useState<Room[]>([]);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [language, setLanguage] = useState('javascript');

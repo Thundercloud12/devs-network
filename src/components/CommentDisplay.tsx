@@ -3,12 +3,14 @@
 import { apiClient } from "@/lib/api-client";
 import { Comment } from "@/models/Comment";
 import { Post } from "@/models/Posts";
+import { User } from "@/models/User";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 
 interface CommentDisplayProps {
   postId: string;
 }
+
 
 
 
