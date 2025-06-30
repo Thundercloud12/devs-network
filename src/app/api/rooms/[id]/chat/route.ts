@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { redis } from '@/lib/redis';
 
-export async function POST(request: NextRequest, context: { params: { id: string } }) {
-  const id = context.params.id;
+// POST route handler
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Record<string, string> }
+) {
+  const { id } = params;
   const { user, message } = await request.json();
 
   const comment = {
@@ -11,18 +15,20 @@ export async function POST(request: NextRequest, context: { params: { id: string
     timestamp: Date.now(),
   };
 
-  // Push the comment to Redis list
   await redis.rpush(`room:${id}:chat`, JSON.stringify(comment));
 
   return NextResponse.json({ success: true });
 }
 
-export async function GET(request: NextRequest, context: { params: { id: string } }) {
-  const id = context.params.id;
+// GET route handler
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Record<string, string> }
+) {
+  const { id } = params;
 
   const messages = await redis.lrange<string>(`room:${id}:chat`, 0, -1);
   const parsedMessages = messages.map((m) => JSON.parse(m));
-  console.log(messages);
-  
+
   return NextResponse.json({ chat: parsedMessages });
 }
