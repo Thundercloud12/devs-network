@@ -21,7 +21,7 @@ export default function Login() {
       password,
       redirect: false,
     });
-    console.log(result)
+    console.log(result,"in signIn")
 
     if (result?.error) {
       showNotification(result.error, "error");
