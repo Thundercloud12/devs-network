@@ -19,6 +19,7 @@ export const authOptions: NextAuthOptions= {
 
                 try {
                    await connectDb();
+                   console.log("Connected to MongoDB");
                    const user = await User.findOne({username: credentials.username})
 
                    if(!user) {
@@ -37,6 +38,7 @@ export const authOptions: NextAuthOptions= {
                    }
 
                 } catch (error) {
+                    console.log(error)
                     throw error
                 }
             }
