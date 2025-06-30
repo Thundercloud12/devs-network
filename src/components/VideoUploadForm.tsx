@@ -69,7 +69,7 @@ export default function MediaUploadForm() {
 
     setLoading(true);
     try {
-      await apiClient.createPost({ ...data, type: mediaType});
+      await apiClient.createPost({ ...data, type: mediaType, flagged: false});
       showNotification(
         `${mediaType === "video" ? "Video" : "Image"} published successfully!`,
         "success"

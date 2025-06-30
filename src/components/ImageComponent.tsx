@@ -63,7 +63,7 @@ export default function ImageComponent({ post }: { post: Post }) {
       )}
       <div className="flex items-center justify-between mt-1">
         <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-          {post.userPosted?.username || "Unknown User"}
+          {(post.userPosted as any)?.username || "Unknown User"}
         </span>
         <span className="text-xs text-gray-500">
           {new Date(post.createdAt || "").toLocaleDateString()}

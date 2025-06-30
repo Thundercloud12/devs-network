@@ -68,7 +68,8 @@ export async function POST(request :NextRequest) {
                     width: 1080,
                     quality: body.transformationVideo?.quality ?? 100,
                 },
-                userPosted: userId
+                userPosted: userId,
+    
             }
 
            
@@ -86,7 +87,6 @@ export async function POST(request :NextRequest) {
                     quality: body.transformationVideo?.quality ?? 100,
                 },
                 userPosted: userId,
-                flagged: false
             }
           
             
