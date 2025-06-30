@@ -4,9 +4,9 @@ import { redis } from '@/lib/redis';
 // POST route handler
 export async function POST(
   request: NextRequest,
-  { params }: { params: Record<string, string> }
+  {params}: {params: Promise<{ id: string }>}
 ) {
-  const { id } = params;
+  const { id } = await params;
   const { user, message } = await request.json();
 
   const comment = {
