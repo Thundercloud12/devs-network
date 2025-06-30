@@ -4,8 +4,9 @@ import CodingRoom from '@/models/CodingRoom';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 
-export async function POST(req: NextRequest, context: { params: { id: string } }) {
-    const { id } = await context.params;
+export async function POST(req: NextRequest) {
+    const searchParams = req.nextUrl.searchParams;
+    const id = searchParams.get('id');
 
   await connectDb();
 
