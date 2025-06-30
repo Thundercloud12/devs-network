@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { redis } from '@/lib/redis';
 
-// POST route
+// POST route handler
 export async function POST(
   request: NextRequest,
-  { params }: { params: { [key: string]: string } }
+  { params }: { params: Record<string, string> }
 ) {
+  const { id } = params;
   const { user, message } = await request.json();
-  const id = params.id;
 
   const comment = {
     user,
@@ -20,12 +20,12 @@ export async function POST(
   return NextResponse.json({ success: true });
 }
 
-// GET route
+// GET route handler
 export async function GET(
   request: NextRequest,
-  { params }: { params: { [key: string]: string } }
+  { params }: { params: Record<string, string> }
 ) {
-  const id = params.id;
+  const { id } = params;
 
   const messages = await redis.lrange<string>(`room:${id}:chat`, 0, -1);
   const parsedMessages = messages.map((m) => JSON.parse(m));
