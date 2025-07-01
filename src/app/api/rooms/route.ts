@@ -7,15 +7,29 @@ import { connectDb } from "@/lib/dbConect";
 
 // GET /api/rooms
 export async function GET() {
-  await connectDb()
-  const rooms = await CodingRoom.find({}).sort({ createdAt: -1 });
-  return NextResponse.json({ rooms });
+
+  try {
+    await connectDb()
+    const rooms = await CodingRoom.find({}).sort({ createdAt: -1 });
+    return NextResponse.json({ rooms });
+  } catch (error) {
+    console.log(error);
+    return NextResponse.json({ error: "Something went wrong" }, { status: 500 }); 
+  }
+  
 }
 
 // POST /api/rooms
 export async function POST(req: NextRequest) {
-  await connectDb()
-  const data = await req.json();
-  const room = await CodingRoom.create(data);
-  return NextResponse.json(room, { status: 201 });
+
+  try {
+    await connectDb()
+    const data = await req.json();
+    const room = await CodingRoom.create(data);
+    return NextResponse.json(room, { status: 201 });
+  } catch (error) {
+    console.log(error);
+    return NextResponse.json({ error: "Something went wrong" }, { status: 500 }); 
+  }
+
 }

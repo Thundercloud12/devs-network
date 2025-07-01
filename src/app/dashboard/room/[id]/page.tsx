@@ -9,6 +9,8 @@ let socket: Socket;
 
 export default function RoomPage() {
   const { id } = useParams();
+  console.log(id);
+  
   const { data: session } = useSession();
   const router = useRouter();
 
@@ -36,13 +38,15 @@ export default function RoomPage() {
 
   useEffect(() => {
     async function fetchData() {
-      const res = await fetch(`/api/rooms/?id=${id}`);
+      const res = await fetch(`/api/rooms/room?id=${id}`);
       const data = await res.json();
       setRoom(data);
       setCode(data.code);
       setIsHost(data.host._id === userId);
 
       const chatRes = await fetch(`/api/rooms/chat?id=${id}`);
+      console.log(chatRes);
+      
       const chatData = await chatRes.json();
       setChat(chatData.chat);
 
@@ -100,7 +104,7 @@ export default function RoomPage() {
     if (!room) return;
 
     setIsSaving(true);
-    await fetch(`/api/rooms/?id=${id}`, {
+    await fetch(`/api/rooms/room?id=${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ code }),
@@ -114,7 +118,7 @@ export default function RoomPage() {
     const confirmed = confirm('Are you sure you want to delete this room?');
     if (!confirmed) return;
 
-    await fetch(`/api/rooms/?id=${id}`, {
+    await fetch(`/api/rooms/room/?id=${id}`, {
       method: 'DELETE',
     });
     socket.emit('deleteRoom', id);
@@ -156,36 +160,29 @@ export default function RoomPage() {
   }
 
   return (
-    <div className="min-h-screen flex p-4 space-x-4 bg-gradient-to-br from-gray-100 to-gray-200">
-      {/* Main Section */}
+    <div className="min-h-screen flex flex-col lg:flex-row p-4 bg-gradient-to-br from-gray-100 to-gray-200 space-y-4 lg:space-y-0 lg:space-x-4">
+      {/* Left section */}
       <div className="flex flex-col flex-1 space-y-4">
-        <div className="bg-white rounded-xl p-4 shadow">
-          <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold">{room.title}</h1>
-            <div className="flex space-x-3">
-              {isHost && (
-                <button
-                  onClick={deleteRoom}
-                  className="bg-red-600 text-white rounded-full px-4 py-2 font-semibold hover:bg-red-700"
-                >
-                  Delete Room
-                </button>
-              )}
-              {!isHost && (
-                <button
-                  onClick={leaveRoom}
-                  className="bg-gray-600 text-white rounded-full px-4 py-2 font-semibold hover:bg-gray-700"
-                >
-                  Leave Room
-                </button>
-              )}
-            </div>
+        <div className="bg-white rounded-xl p-4 shadow flex justify-between items-center">
+          <div>
+            <h1 className="text-xl lg:text-2xl font-bold">{room.title}</h1>
+            <p className="text-gray-600 mt-1">{room.description}</p>
           </div>
-          <p className="text-gray-600 mt-1">{room.description}</p>
+          <div className="flex space-x-2">
+            {isHost ? (
+              <button onClick={deleteRoom} className="bg-red-600 text-white rounded-full px-4 py-2 text-sm lg:text-base">
+                Delete Room
+              </button>
+            ) : (
+              <button onClick={leaveRoom} className="bg-gray-600 text-white rounded-full px-4 py-2 text-sm lg:text-base">
+                Leave Room
+              </button>
+            )}
+          </div>
         </div>
 
-        <div className="bg-white rounded-xl flex flex-col flex-1 p-4 shadow">
-          <h2 className="font-bold text-lg">Code Editor ({room.language})</h2>
+        <div className="bg-white rounded-xl flex-1 flex flex-col p-4 shadow">
+          <h2 className="font-bold text-lg lg:text-xl">Code Editor ({room.language})</h2>
           <div className="flex-1 mt-2 border rounded overflow-hidden">
             <Editor
               value={code}
@@ -206,12 +203,12 @@ export default function RoomPage() {
         </div>
       </div>
 
-      {/* Comment Stream */}
-      <div className="w-1/3 flex flex-col space-y-2 bg-white rounded-xl p-4 shadow">
-        <h2 className="font-bold text-lg">Comments</h2>
+      {/* Right (Chat) section */}
+      <div className="w-full lg:w-1/3 flex flex-col space-y-2 bg-white rounded-xl p-4 shadow">
+        <h2 className="font-bold text-lg lg:text-xl">Comments</h2>
         <div className="flex-1 overflow-y-auto space-y-2 p-2 rounded border border-gray-300">
           {chat.map((c, idx) => (
-            <div key={idx} className="bg-gray-100 rounded p-2">
+            <div key={idx} className="bg-gray-100 rounded p-2 break-words">
               <strong>{c.user}</strong>: {c.message}
             </div>
           ))}
@@ -222,14 +219,10 @@ export default function RoomPage() {
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
             placeholder="Add a comment..."
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                sendComment();
-              }
-            }}
+            onKeyDown={(e) => e.key === 'Enter' && sendComment()}
           />
           <button
-            className="bg-blue-600 text-white rounded px-4 py-2 font-semibold hover:bg-blue-700"
+            className="bg-blue-600 text-white rounded px-3 lg:px-4 py-2 font-semibold hover:bg-blue-700"
             onClick={sendComment}
           >
             Send

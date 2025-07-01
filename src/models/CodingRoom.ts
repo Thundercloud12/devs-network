@@ -22,12 +22,12 @@ const CodingRoomSchema = new Schema<CodingRoom>(
         title: {
             type: String,
             required: true,
-            unique: true
+            unique: false
         },
         description: {
             type: String,
             required: true,
-            unique: true
+            unique: false
         },
         host: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
         participants: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],

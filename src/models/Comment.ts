@@ -17,7 +17,7 @@ const CommentSchema = new Schema<Comment>(
         content: {
             type: String,
             required: true,
-            unique: true
+            unique: false
         },
         likecount: {
             type: Number,

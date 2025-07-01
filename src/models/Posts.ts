@@ -47,12 +47,12 @@ const PostsSchema = new Schema<Post>(
         title: {
             type: String,
             required: true,
-            unique: true
+            unique: false
         },
         description: {
             type: String,
             required: true,
-            unique: true
+            unique: false
         },
         mediaUrl: {
             type: String,
