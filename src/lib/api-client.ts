@@ -20,8 +20,9 @@ class ApiClient {
       "Content-Type": "application/json",
       ...headers,
     };
-    const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000";
-    const response = await fetch(`http://localhost:3000/api${endpoint}`, {
+
+    const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+    const response = await fetch(`${BASE_URL}/api${endpoint}`, {
       method,
       headers: defaultHeaders,
       body: body ? JSON.stringify(body) : undefined,

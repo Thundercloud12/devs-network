@@ -36,18 +36,18 @@ export default function RoomPage() {
 
   useEffect(() => {
     async function fetchData() {
-      const res = await fetch(`/api/rooms/${id}`);
+      const res = await fetch(`/api/rooms/?id=${id}`);
       const data = await res.json();
       setRoom(data);
       setCode(data.code);
       setIsHost(data.host._id === userId);
 
-      const chatRes = await fetch(`/api/rooms/${id}/chat`);
+      const chatRes = await fetch(`/api/rooms/chat?id=${id}`);
       const chatData = await chatRes.json();
       setChat(chatData.chat);
 
       if (data.host._id !== userId) {
-        await fetch(`/api/rooms/${id}/join`, {
+        await fetch(`/api/rooms/join?id=${id}`, {
           method: 'POST',
         });
       }
@@ -100,7 +100,7 @@ export default function RoomPage() {
     if (!room) return;
 
     setIsSaving(true);
-    await fetch(`/api/rooms/${id}`, {
+    await fetch(`/api/rooms/?id=${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ code }),
@@ -114,7 +114,7 @@ export default function RoomPage() {
     const confirmed = confirm('Are you sure you want to delete this room?');
     if (!confirmed) return;
 
-    await fetch(`/api/rooms/${id}`, {
+    await fetch(`/api/rooms/?id=${id}`, {
       method: 'DELETE',
     });
     socket.emit('deleteRoom', id);
@@ -128,7 +128,7 @@ export default function RoomPage() {
     const confirmed = confirm('Are you sure you want to leave this room?');
     if (!confirmed) return;
 
-    await fetch(`/api/rooms/${id}/leave`, {
+    await fetch(`/api/rooms/leave?id=${id}`, {
       method: 'POST',
     });
     alert('Left the room!');
@@ -142,7 +142,7 @@ export default function RoomPage() {
       user: session?.user?.username || 'Anonymous',
       message: newComment.trim(),
     };
-    await fetch(`/api/rooms/${id}/chat`, {
+    await fetch(`/api/rooms/chat?id=${id}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(comment),

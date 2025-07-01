@@ -84,7 +84,7 @@ export default function RoomsList() {
               <h3 className="text-xl font-semibold text-gray-800">{room.title}</h3>
               <p className="text-gray-600 mt-1">{room.description}</p>
               <Link
-                href={`room/${room._id}`}
+                href={`/rooms?id=${room._id}`}
                 className="text-blue-600 hover:underline mt-3 block font-medium"
               >
                 Join Room →
