@@ -12,9 +12,11 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const router = useRouter();
   const { showNotification } = useNotification();
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setLoading(true);
 
     const result = await signIn("credentials", {
       username,
@@ -29,6 +31,7 @@ export default function Login() {
       showNotification("Login successful!", "success");
       router.push("/dashboard/feed");
     }
+    setLoading(false);
   };
   
   return (
@@ -74,8 +77,9 @@ export default function Login() {
           <button
             type="submit"
             className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-semibold hover:from-blue-600 hover:to-indigo-700 transition"
+            disabled={loading} // <-- Disable while loading
           >
-            Login
+            {loading ? "Logging in..." : "Login"}
           </button>
         </form>
 

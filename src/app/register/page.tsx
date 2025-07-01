@@ -15,6 +15,7 @@ export default function Register() {
   const [usernameAvailability, setUsernameAvailability] = useState<
     "checking" | "available" | "unavailable" | null
   >(null); // State to track username availability
+  const [loading, setLoading] = useState(false);
 
   const router = useRouter();
   const { showNotification } = useNotification();
@@ -70,7 +71,7 @@ export default function Register() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
+    setLoading(true);
     if (password !== confirmPassword) {
       showNotification("Passwords do not match", "error");
       return;
@@ -104,7 +105,7 @@ export default function Register() {
       if (!res.ok) {
         throw new Error(data.error || "Registration failed");
       }
-
+      setLoading(false);
       showNotification("Registration successful! Please log in.", "success");
       router.push("/login");
     } catch (error) {
