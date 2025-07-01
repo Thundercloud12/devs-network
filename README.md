@@ -1,36 +1,50 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 👨‍💻 Devs-Network
 
-## Getting Started
+Welcome to **Devs-Network** – a powerful platform built with **Next.js** where developers can connect, share posts, collaborate in live coding rooms, and leverage AI to maintain a safe and creative environment. 🚀
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## 📌 Features
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+✅ **Credentials Authentication**:  
+Secure login/signup using **NextAuth**, with debounced username uniqueness checks during registration.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+📝 **Create & Engage with Posts**:  
+Users can create posts, like, comment, and report inappropriate content.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+🤖 **AI-Powered Post Moderation**:  
+Reported posts are automatically reviewed using **Gemini AI** to ensure community safety.
 
-## Learn More
+📸 **Media Uploads with ImageKit**:  
+Seamlessly upload images to posts via **ImageKit** integration.
 
-To learn more about Next.js, take a look at the following resources:
+👨‍💻 **Live Coding Rooms**:  
+Join or host live coding sessions with real-time code visibility and syntax highlighting powered by **Monaco Editor**. *(Execution engine not included)*
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+💬 **Live Chat in Coding Rooms**:  
+Collaborate via real-time comments backed by **Redis Pub/Sub** in each live room.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## 🛠️ Technologies Used
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+| Technology         | Purpose                                |
+|--------------------|----------------------------------------|
+| **Next.js**        | Frontend & SSR Framework               |
+| **NextAuth.js**    | Authentication                         |
+| **ImageKit**       | Media Storage                          |
+| **Gemini AI API**  | Report Moderation & AI Review          |
+| **Monaco Editor**  | Live Coding Editor with Syntax Highlighting |
+| **Redis**          | Real-time Comments in Coding Rooms     |
+| **Tailwind CSS,DaisyUi, Accertinity**   | Styling                                |
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+
+## 🚀 Live Demo  
+
+🔗 https://devs-network.vercel.app/ 
+
+## 💡 Contributing  
+
+Feel free to **report issues** or submit **pull requests**! Let's make expense tracking better together. 😊 
