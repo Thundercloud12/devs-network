@@ -26,12 +26,7 @@ export default function HeaderWithResizableNav() {
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const navItems = [
-    { name: "How it works", link: "#how" },
-    { name: "Features", link: "#features" },
-    { name: "Reviews", link: "#reviews" },
-    { name: "FAQ", link: "#faq" },
-  ];
+  
 
   const handleSignOut = async () => {
     try {
@@ -80,8 +75,8 @@ export default function HeaderWithResizableNav() {
                 </>
               ) : (
                 <div>
-                   <NavItems items={navItems} />
-                
+                   
+            
                   <NavbarButton href="/login" variant="primary">Login</NavbarButton>
                 </div>
                 
