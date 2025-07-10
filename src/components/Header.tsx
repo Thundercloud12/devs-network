@@ -122,16 +122,7 @@ export default function HeaderWithResizableNav() {
                 </div>
               ) : (
                 <div>
-                {navItems.map((item, idx) => (
-                  <a
-                    key={`mobile-link-${idx}`}
-                    href={item.link}
-                    className="relative text-neutral-600 dark:text-neutral-300 block py-2"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    {item.name}
-                  </a>
-                ))}
+                
                 <NavbarButton
                   onClick={() => setIsMobileMenuOpen(false)}
                   variant="primary"
