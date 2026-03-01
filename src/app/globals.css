@@ -77,6 +77,29 @@
   --sidebar-accent-foreground: oklch(0.21 0.034 264.665);
   --sidebar-border: oklch(0.928 0.006 264.531);
   --sidebar-ring: oklch(0.707 0.022 261.325);
+
+  /* NEO-BRUTALIST TOKENS */
+  --brutalist-bg: #F4F0EA;
+  --brutalist-black: #1A1A1A;
+  --brutalist-green: #39FF14;
+  --brutalist-orange: #FF5722;
+  --brutalist-yellow: #FFD700;
+  --brutalist-white: #FFFFFF;
+}
+
+@layer utilities {
+  .brutalist-shadow {
+    box-shadow: 8px 8px 0px 0px var(--brutalist-black);
+  }
+  .brutalist-shadow-large {
+    box-shadow: 12px 12px 0px 0px var(--brutalist-black);
+  }
+  .brutalist-border {
+    border: 4px solid var(--brutalist-black);
+  }
+  .brutalist-border-thick {
+    border: 6px solid var(--brutalist-black);
+  }
 }
 
 .dark {

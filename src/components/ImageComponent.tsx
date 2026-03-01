@@ -27,11 +27,11 @@ export default function ImageComponent({ post }: { post: Post }) {
       console.error("Error fetching like info:", err);
     }
   };
-  
+
   useEffect(() => {
     if (session?.user) {
       console.log(post);
-      
+
       fetchLikeInfo();
     }
   }, [session?.user, post._id]);
@@ -52,31 +52,27 @@ export default function ImageComponent({ post }: { post: Post }) {
       }
     });
   };
-  
+
   return (
-    <div className="bg-white dark:bg-base-100 rounded-xl shadow border border-base-300 p-4 max-w-2xl w-full">
+    <div className="bg-white border-4 border-[#1A1A1A] p-6 w-full max-w-2xl shadow-[8px_8px_0px_0px_#1A1A1A] transition-transform hover:-translate-y-1">
       {/* Title */}
       {post.title && (
-        <h2 className="text-xl font-semibold text-gray-800 dark:text-white">
+        <h2 className="text-2xl font-black uppercase tracking-tight text-[#1A1A1A] mb-2">
           {post.title}
         </h2>
       )}
-      <div className="flex items-center justify-between mt-1">
-        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-          {(post.userPosted as any)?.username || "Unknown User"}
-        </span>
-        <span className="text-xs text-gray-500">
-          {new Date(post.createdAt || "").toLocaleDateString()}
-        </span>
+      <div className="flex items-center justify-between mb-4 border-b-2 border-dashed border-[#1A1A1A] pb-2 font-bold uppercase text-xs tracking-widest">
+        <span>&gt; USER: {(post.userPosted as any)?.username || "ANONYMOUS"}</span>
+        <span>{new Date(post.createdAt || "").toLocaleDateString()}</span>
       </div>
 
       {/* Image */}
-      <div className="rounded-xl overflow-hidden mt-3 w-full aspect-video">
+      <div className="border-4 border-[#1A1A1A] overflow-hidden bg-[#1A1A1A] shadow-[4px_4px_0px_0px_#1A1A1A] aspect-video">
         <Link href={`/posts/${post._id}`} className="relative group block w-full h-full">
-        <IKImage
+          <IKImage
             urlEndpoint="https://ik.imagekit.io/hnadywdm3"
             path={post.mediaUrl}
-            transformation={[{  width: "1080" }]}
+            transformation={[{ width: "1080" }]}
             alt="post image"
             className="w-full h-full object-contain"
           />
@@ -84,12 +80,12 @@ export default function ImageComponent({ post }: { post: Post }) {
       </div>
 
       {/* Description */}
-      <p className="text-sm text-gray-700 dark:text-gray-300 mt-3">
+      <p className="text-[#1A1A1A] font-bold mt-4 text-sm leading-relaxed border-l-4 border-[#FF5722] pl-3">
         {post.description}
       </p>
 
       {/* Actions */}
-      <div className="flex justify-around items-center mt-3 pt-3 border-t border-base-200">
+      <div className="grid grid-cols-3 gap-4 mt-6">
         {liked !== null && likeCount !== null ? (
           <LikeButton
             postId={post._id!.toString()}
@@ -97,20 +93,25 @@ export default function ImageComponent({ post }: { post: Post }) {
             initialCount={likeCount}
           />
         ) : (
-          <span className="text-sm text-gray-400">Loading Likes...</span>
+          <div className="border-4 border-[#1A1A1A] bg-gray-100 py-2 text-center font-black uppercase text-[10px]">
+            WAIT...
+          </div>
         )}
         <button
-          className="btn btn-sm btn-outline"
+          className="border-4 border-[#1A1A1A] bg-[#39FF14] py-2 font-black uppercase text-xs shadow-[4px_4px_0px_0px_#1A1A1A] transition-all hover:-translate-y-0.5 hover:translate-x-0.5 hover:shadow-[2px_2px_0px_0px_#1A1A1A] active:translate-x-0 active:translate-y-0 active:shadow-none"
           onClick={() => setShowComments((prev) => !prev)}
         >
-          💬 Comments
+          COMMENTS
         </button>
         <button
-          className={`btn btn-sm ${reported ? "btn-disabled" : "btn-outline text-red-500"}`}
+          className={`border-4 border-[#1A1A1A] py-2 font-black uppercase text-xs transition-all ${reported
+              ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+              : "bg-[#FF5722] text-white shadow-[4px_4px_0px_0px_#1A1A1A] hover:-translate-y-0.5 hover:translate-x-0.5 hover:shadow-[2px_2px_0px_0px_#1A1A1A] active:translate-x-0 active:translate-y-0 active:shadow-none"
+            }`}
           onClick={handleReport}
           disabled={isPending || reported}
         >
-          🚩 {reported ? "Reported" : "Report"}
+          {reported ? "REPORTED" : "REPORT"}
         </button>
       </div>
 

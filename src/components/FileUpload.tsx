@@ -115,31 +115,45 @@ export default function FileUpload({
   };
 
   return (
-    <div className="space-y-2">
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept={fileType === "video" ? "video/*" : "image/*"}
-        className="file-input file-input-bordered w-full"
-      />
+    <div className="space-y-4">
+      <div className="relative">
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept={fileType === "video" ? "video/*" : "image/*"}
+          className="hidden"
+          onChange={() => setError(null)}
+        />
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          className="w-full border-4 border-[#1A1A1A] bg-white p-4 font-black uppercase tracking-widest shadow-[4px_4px_0px_0px_#1A1A1A] hover:bg-[#FFD700] transition-colors"
+        >
+          {fileInputRef.current?.files?.[0]?.name || `SELECT_${fileType.toUpperCase()}_FILE`}
+        </button>
+      </div>
 
       <button
         type="button"
         onClick={handleUpload}
         disabled={uploading}
-        className="btn btn-primary w-full"
+        className="w-full border-4 border-[#1A1A1A] bg-[#39FF14] py-4 font-black uppercase tracking-widest shadow-[6px_6px_0px_0px_#1A1A1A] transition-all hover:-translate-y-1 hover:translate-x-1 hover:shadow-[10px_10px_0px_0px_#1A1A1A] active:translate-x-0 active:translate-y-0 active:shadow-none disabled:cursor-not-allowed disabled:bg-gray-300 disabled:shadow-none"
       >
         {uploading ? (
-          <div className="flex items-center gap-2">
-            <Loader2 className="w-4 h-4 animate-spin" />
-            Uploading...
+          <div className="flex items-center justify-center gap-2">
+            <Loader2 className="w-5 h-5 animate-spin" />
+            UPLOADING...
           </div>
         ) : (
-          "Upload"
+          "EXECUTE_UPLOAD"
         )}
       </button>
 
-      {error && <div className="text-error text-sm">{error}</div>}
+      {error && (
+        <div className="border-4 border-[#1A1A1A] bg-[#FF5722] p-3 text-white font-black uppercase text-xs">
+          [ERR] {error}
+        </div>
+      )}
     </div>
   );
 }

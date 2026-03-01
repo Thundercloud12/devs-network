@@ -14,9 +14,9 @@ export default function FeedPage() {
   }, []);
 
   return (
-    <div className="flex bg-gray-50 min-h-screen">
+    <div className="flex bg-[#F4F0EA] min-h-screen">
       <Sidebar />
-      <main className="ml-64 p-8 flex-1">
+      <main className="ml-72 p-10 flex-1 pt-24">
         <VideoFeed posts={posts} />
       </main>
     </div>

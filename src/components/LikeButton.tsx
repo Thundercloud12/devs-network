@@ -49,8 +49,12 @@ export default function LikeButton({
   };
 
   return (
-    <button onClick={toggleLike} className="flex items-center gap-2">
-      {liked ? "❤️" : "🤍"} <span>{likeCount}</span>
+    <button
+      onClick={toggleLike}
+      className={`border-4 border-[#1A1A1A] py-2 font-black uppercase text-xs transition-all shadow-[4px_4px_0px_0px_#1A1A1A] hover:-translate-y-0.5 hover:translate-x-0.5 hover:shadow-[2px_2px_0px_0px_#1A1A1A] active:translate-x-0 active:translate-y-0 active:shadow-none flex items-center justify-center gap-2 ${liked ? "bg-[#FFD700]" : "bg-white"
+        }`}
+    >
+      {liked ? "COLLECTED" : "COLLECT"} [{likeCount}]
     </button>
   );
 }
