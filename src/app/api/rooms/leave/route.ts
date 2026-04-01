@@ -25,12 +25,18 @@ export async function POST(req: NextRequest) {
   }
 
 
-  // remove user to participants
+  // remove user from participants
   room.participants = room.participants.filter(
-    (p: { userId: string }) => p.userId.toString() !== userId
+    (p: any) => p.toString() !== userId
   );
+  
+  // Also remove from editors access
+  room.editorsAccess = room.editorsAccess.filter(
+    (id: any) => id.toString() !== userId
+  );
+  
   await room.save();
   console.log("Work done");
   
-  return NextResponse.json({ message: 'Remobved from room successfully', room }, { status: 200 });
+  return NextResponse.json({ message: 'Removed from room successfully', room }, { status: 200 });
 }

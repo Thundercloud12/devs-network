@@ -1,17 +1,27 @@
 'use client';
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, useRef, useCallback, useDeferredValue } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { io, Socket } from 'socket.io-client';
-import Editor from '@monaco-editor/react';
+import Editor, { useMonaco } from '@monaco-editor/react';
 import { useSession } from 'next-auth/react';
 import { useNotification } from '@/components/Notification';
+import { getBlockAtCursor, parseCodeBlocks, type CodeBlock } from '@/lib/codeBlockParser';
+import {
+  LockIndicator,
+  BlockStatusBadge,
+  LockWarningDialog,
+  LocksList,
+} from '@/components/LockIndicators';
 
 export default function RoomPage() {
   const { id } = useParams();
   const { data: session } = useSession();
   const router = useRouter();
   const { showNotification } = useNotification();
+  const monaco = useMonaco();
   const socketRef = useRef<Socket | null>(null);
+  const lockRefreshTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const editorRef = useRef<any>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -40,6 +50,14 @@ export default function RoomPage() {
     timestamp: number;
   };
 
+  type LockInfo = {
+    blockId: string;
+    blockType: string;
+    lockedBy: string;
+    username: string;
+    timestamp: number;
+  };
+
   const [room, setRoom] = useState<Room | null>(null);
   const [code, setCode] = useState('');
   const [isSaving, setIsSaving] = useState(false);
@@ -47,6 +65,12 @@ export default function RoomPage() {
   const [chat, setChat] = useState<ChatMessage[]>([]);
   const [newComment, setNewComment] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [currentBlock, setCurrentBlock] = useState<CodeBlock | null>(null);
+  const [locks, setLocks] = useState<Map<string, LockInfo>>(new Map());
+  const [myLocks, setMyLocks] = useState<Set<string>>(new Set());
+  const [codeBlocks, setCodeBlocks] = useState<CodeBlock[]>([]);
+  const [showLockDialog, setShowLockDialog] = useState(false);
+  const [lockDialogInfo, setLockDialogInfo] = useState<LockInfo | null>(null);
 
   const userId = session?.user?.id;
   const roomIdString = Array.isArray(id) ? id[0] : id;
@@ -96,6 +120,42 @@ export default function RoomPage() {
           }
           return prevRoom;
         });
+      });
+
+      // Lock events
+      socketRef.current.on('blockLocked', (lockInfo: LockInfo) => {
+        setLocks((prev) => new Map(prev).set(lockInfo.blockId, lockInfo));
+
+        if (lockInfo.lockedBy === userId) {
+          setMyLocks((prev) => new Set(prev).add(lockInfo.blockId));
+          showNotification(`🔒 Editing: ${lockInfo.blockId}`, 'info');
+        } else {
+          showNotification(
+            `🔒 ${lockInfo.username} is editing ${lockInfo.blockId}`,
+            'warning'
+          );
+        }
+      });
+
+      socketRef.current.on('blockUnlocked', ({ blockId }: { blockId: string }) => {
+        setLocks((prev) => {
+          const updated = new Map(prev);
+          updated.delete(blockId);
+          return updated;
+        });
+
+        if (myLocks.has(blockId)) {
+          setMyLocks((prev) => {
+            const updated = new Set(prev);
+            updated.delete(blockId);
+            return updated;
+          });
+        }
+      });
+
+      socketRef.current.on('blockLockDenied', ({ blockId, reason }: { blockId: string; reason?: string }) => {
+        showNotification(`Cannot edit ${blockId}: ${reason || 'Block is locked'}`, 'error');
+        setShowLockDialog(true);
       });
 
       socketRef.current.on('roomDeleted', () => {
@@ -148,6 +208,10 @@ export default function RoomPage() {
         setRoom(roomData);
         setCode(roomData.code || '');
         setIsHost(roomData.host._id === userId);
+        
+        // Parse code blocks
+        const blocks = parseCodeBlocks(roomData.code || '', roomData.language);
+        setCodeBlocks(blocks);
 
         // Fetch chat history
         const chatRes = await fetch(`/api/rooms/chat?id=${roomIdString}`);
@@ -201,15 +265,157 @@ export default function RoomPage() {
     };
   }, [code, room]);
 
+  // Apply visual decorations for locked blocks
+  const applyLockDecorations = useCallback(() => {
+    if (!editorRef.current || !monaco) return;
+    
+    const editor = editorRef.current;
+    const decorations: any[] = [];
+
+    // Iterate through all code blocks and check if they're locked
+    codeBlocks.forEach((block) => {
+      const lockInfo = locks.get(block.id);
+      if (!lockInfo) return;
+
+      const isMyLock = myLocks.has(block.id);
+      const color = isMyLock ? '#39FF14' : '#FF5722'; // Green for mine, orange for others
+      const lightColor = isMyLock ? '#39FF1420' : '#FF572220'; // Light background
+
+      // Add decorations for each line in the block
+      for (let line = block.startLine + 1; line <= block.endLine + 1; line++) {
+        decorations.push({
+          range: new monaco.Range(line, 1, line, 1),
+          options: {
+            isWholeLine: true,
+            className: `lock-${isMyLock ? 'mine' : 'other'}`,
+            glyphMarginClassName: `lock-glyph-${isMyLock ? 'mine' : 'other'}`,
+            glyphMarginHoverMessage: [
+              { value: `🔒 Locked by ${lockInfo.username}` },
+            ],
+            minimap: {
+              color: color,
+              position: 2, // Render on the right
+            },
+          },
+        });
+      }
+    });
+
+    editor.deltaDecorations([], decorations);
+  }, [codeBlocks, locks, myLocks, monaco]);
+
+  // Apply decorations whenever locks change
+  useEffect(() => {
+    applyLockDecorations();
+  }, [applyLockDecorations, locks, myLocks]);
+
   const handleCodeChange = useCallback(
-    (value?: string) => {
-      if (!isHost && room && !room.editorsAccess.includes(userId!)) return;
-      if (!socketRef.current) return;
+    (value?: string, e?: any) => {
+      if (!socketRef.current || !room) return;
+
+      // Check if user can edit
+      const canEdit = isHost || room.editorsAccess.includes(userId!);
+      if (!canEdit) return;
+
       const newCode = value || '';
+      
+      // Get current cursor line to detect block change
+      if (e && e.getPosition) {
+        const position = e.getPosition();
+        const lineNumber = position.lineNumber - 1; // Convert to 0-indexed
+        const block = getBlockAtCursor(newCode, lineNumber, room.language);
+
+        if (block && currentBlock?.id !== block.id) {
+          // User moved to new block - try to acquire lock
+          setCurrentBlock(block);
+          requestBlockLock(block);
+          return;
+        }
+      }
+
       setCode(newCode);
-      socketRef.current.emit('editorChange', { roomId: roomIdString, content: newCode });
+
+      // Refresh lock if currently holding one
+      if (currentBlock && myLocks.has(currentBlock.id)) {
+        socketRef.current.emit('refreshLock', {
+          roomId: roomIdString,
+          blockType: currentBlock.type,
+          blockId: currentBlock.id,
+        });
+      }
+
+      socketRef.current.emit('editorChange', {
+        roomId: roomIdString,
+        content: newCode,
+        blockId: currentBlock?.id,
+      });
     },
-    [isHost, room, userId, roomIdString]
+    [isHost, room, userId, roomIdString, currentBlock, myLocks]
+  );
+
+  const requestBlockLock = useCallback(
+    async (block: CodeBlock) => {
+      if (!socketRef.current || !room) return;
+
+      try {
+        const res = await fetch(
+          `/api/rooms/lock?roomId=${roomIdString}&blockType=${block.type}&blockId=${block.id}`,
+          { method: 'POST' }
+        );
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          setLockDialogInfo(data.lockedBy);
+          setShowLockDialog(true);
+          showNotification(`Block "${block.id}" is locked by ${data.lockedBy?.username}`, 'warning');
+          return;
+        }
+
+        // Emit lock event to others
+        socketRef.current.emit('blockLockRequest', {
+          roomId: roomIdString,
+          blockType: block.type,
+          blockId: block.id,
+          username: session?.user?.username,
+        });
+
+        setMyLocks((prev) => new Set(prev).add(block.id));
+        showNotification(`🔒 Editing: ${block.id}`, 'success');
+      } catch (err) {
+        console.error('Lock request error:', err);
+        showNotification('Failed to acquire lock', 'error');
+      }
+    },
+    [roomIdString, session?.user?.username, showNotification]
+  );
+
+  const releaseBlockLock = useCallback(
+    async (blockId: string) => {
+      if (!currentBlock) return;
+
+      try {
+        await fetch(
+          `/api/rooms/unlock?roomId=${roomIdString}&blockType=${currentBlock.type}&blockId=${blockId}`,
+          { method: 'POST' }
+        );
+
+        socketRef.current?.emit('blockUnlock', {
+          roomId: roomIdString,
+          blockType: currentBlock.type,
+          blockId,
+        });
+
+        setMyLocks((prev) => {
+          const updated = new Set(prev);
+          updated.delete(blockId);
+          return updated;
+        });
+      } catch (err) {
+        console.error('Unlock error:', err);
+      }
+    },
+    [roomIdString, currentBlock]
   );
 
   const saveCode = async () => {
@@ -396,6 +602,18 @@ export default function RoomPage() {
               SAVING...
             </div>
           )}
+          {currentBlock && (
+            <BlockStatusBadge
+              status={
+                myLocks.has(currentBlock.id)
+                  ? 'editable'
+                  : locks.has(currentBlock.id)
+                  ? 'locked'
+                  : 'editable'
+              }
+              username={locks.get(currentBlock.id)?.username}
+            />
+          )}
           <div className="flex flex-wrap gap-2">
             {isHost ? (
               <>
@@ -441,20 +659,24 @@ export default function RoomPage() {
             <Editor
               value={code}
               onChange={handleCodeChange}
+              onMount={(editor) => {
+                editorRef.current = editor;
+                applyLockDecorations();
+              }}
               language={room.language}
               theme="vs-dark"
               options={{
                 readOnly: !isHost && !room.editorsAccess.includes(userId!),
                 fontSize: 16,
                 fontFamily: "var(--font-mono)",
-                minimap: { enabled: false },
+                minimap: { enabled: true },
                 scrollBeyondLastLine: false,
                 automaticLayout: true,
                 padding: { top: 20, bottom: 20 },
                 lineNumbers: 'on',
-                glyphMargin: false,
+                glyphMargin: true,
                 folding: true,
-                lineDecorationsWidth: 10,
+                lineDecorationsWidth: 20,
                 lineNumbersMinChars: 3,
               }}
             />
@@ -600,6 +822,19 @@ export default function RoomPage() {
               )}
             </div>
           </div>
+        )}
+
+        {/* Lock Warning Dialog */}
+        {showLockDialog && lockDialogInfo && (
+          <LockWarningDialog
+            username={lockDialogInfo.username}
+            blockName={lockDialogInfo.blockId}
+            onClose={() => setShowLockDialog(false)}
+            onEditOther={() => {
+              setShowLockDialog(false);
+              // TODO: Find and move to next editable block
+            }}
+          />
         )}
       </div>
     </div>

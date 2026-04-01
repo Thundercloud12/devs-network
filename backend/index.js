@@ -2,6 +2,7 @@ import express from "express";
 import { createServer } from "http";
 import { Server } from "socket.io";
 import cors from "cors";
+import redis from "redis";
 
 const app = express();
 app.use(cors());
@@ -12,6 +13,12 @@ const io = new Server(server, {
     origin: process.env.FRONTEND_URL || "*",
   },
   transports: ['websocket', 'polling'],
+});
+
+// Redis client for lock management
+const redisClient = redis.createClient({
+  url: process.env.UPSTASH_REDIS_REST_URL,
+  token: process.env.UPSTASH_REDIS_REST_TOKEN,
 });
 
 // Track rooms and users
@@ -130,6 +137,67 @@ io.on("connection", (socket) => {
     }
   });
 
+  // Block lock request
+  socket.on("blockLockRequest", async ({ roomId, blockType, blockId, username }) => {
+    try {
+      if (!roomId || !blockType || !blockId) {
+        socket.emit("blockLockDenied", {
+          blockId,
+          reason: "Invalid lock request",
+        });
+        return;
+      }
+
+      const lockKey = `room:${roomId}:lock:${blockType}:${blockId}`;
+      
+      // In a real implementation, you'd use Redis here
+      // For now, broadcast the lock request and let clients handle it
+      
+      io.to(roomId).emit("blockLocked", {
+        blockId,
+        blockType,
+        lockedBy: socket.id,
+        username,
+        timestamp: new Date(),
+      });
+
+      console.log(`Block ${blockId} locked by ${username} in room ${roomId}`);
+    } catch (err) {
+      console.error("Error acquiring lock:", err);
+      socket.emit("blockLockError", { error: "Failed to acquire lock" });
+    }
+  });
+
+  // Refresh lock (keep TTL alive)
+  socket.on("refreshLock", async ({ roomId, blockType, blockId }) => {
+    try {
+      if (!roomId || !blockId) return;
+
+      // In real implementation, refresh Redis key TTL here
+      console.log(`Lock refreshed for ${blockId} in room ${roomId}`);
+    } catch (err) {
+      console.error("Error refreshing lock:", err);
+    }
+  });
+
+  // Block unlock
+  socket.on("blockUnlock", async ({ roomId, blockType, blockId }) => {
+    try {
+      if (!roomId || !blockId) return;
+
+      io.to(roomId).emit("blockUnlocked", {
+        blockId,
+        blockType,
+        unlockedBy: socket.id,
+        timestamp: new Date(),
+      });
+
+      console.log(`Block ${blockId} unlocked in room ${roomId}`);
+    } catch (err) {
+      console.error("Error releasing lock:", err);
+    }
+  });
+
   // Disconnect
   socket.on("disconnect", () => {
     console.log("User disconnected:", socket.id);
@@ -141,6 +209,12 @@ io.on("connection", (socket) => {
         if (users.size === 0) {
           rooms.delete(roomId);
         }
+        
+        // Notify others in room that user disconnected
+        io.to(roomId).emit("userDisconnected", {
+          userId: socket.id,
+          timestamp: new Date(),
+        });
       }
     }
   });
