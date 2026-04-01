@@ -9,6 +9,7 @@ export interface CodingRoom{
     description: string,
     host: User,
     participants: User[],
+    editorsAccess: mongoose.Types.ObjectId[],
     language: string,
     code?: string,
     isLive: boolean 
@@ -31,6 +32,7 @@ const CodingRoomSchema = new Schema<CodingRoom>(
         },
         host: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
         participants: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+        editorsAccess: [{ type: mongoose.Schema.Types.ObjectId, ref: "User", default: [] }],
         language: {
             type: String,
             required: true

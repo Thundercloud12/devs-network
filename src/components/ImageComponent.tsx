@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { IKImage } from "imagekitio-next";
-import Link from "next/link";
 import { Post } from "@/models/Posts";
 import CommentDisplay from "./CommentDisplay";
 import LikeButton from "./LikeButton";
@@ -68,7 +67,13 @@ export default function ImageComponent({ post }: { post: Post }) {
 
       {/* Image */}
       <div className="border-4 border-[#1A1A1A] overflow-hidden bg-[#1A1A1A] shadow-[4px_4px_0px_0px_#1A1A1A] aspect-video">
-        <Link href={`/posts/${post._id}`} className="relative group block w-full h-full">
+        <div
+          className="relative group block w-full h-full cursor-pointer"
+          onClick={() => {
+            const imageUrl = `https://ik.imagekit.io/hnadywdm3${post.mediaUrl}`;
+            window.open(imageUrl, "_blank");
+          }}
+        >
           <IKImage
             urlEndpoint="https://ik.imagekit.io/hnadywdm3"
             path={post.mediaUrl}
@@ -76,7 +81,7 @@ export default function ImageComponent({ post }: { post: Post }) {
             alt="post image"
             className="w-full h-full object-contain"
           />
-        </Link>
+        </div>
       </div>
 
       {/* Description */}
