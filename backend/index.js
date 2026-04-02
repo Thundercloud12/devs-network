@@ -2,7 +2,6 @@ import express from "express";
 import { createServer } from "http";
 import { Server } from "socket.io";
 import cors from "cors";
-import redis from "redis";
 
 const app = express();
 app.use(cors());
@@ -13,12 +12,6 @@ const io = new Server(server, {
     origin: process.env.FRONTEND_URL || "*",
   },
   transports: ['websocket', 'polling'],
-});
-
-// Redis client for lock management
-const redisClient = redis.createClient({
-  url: process.env.UPSTASH_REDIS_REST_URL,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN,
 });
 
 // Track rooms and users
