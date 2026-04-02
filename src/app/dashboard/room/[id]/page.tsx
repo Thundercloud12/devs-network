@@ -827,8 +827,8 @@ export default function RoomPage() {
         {/* Lock Warning Dialog */}
         {showLockDialog && lockDialogInfo && (
           <LockWarningDialog
-            username={lockDialogInfo.username}
-            blockName={lockDialogInfo.blockId}
+            blockId={lockDialogInfo.blockId}
+            lockedByUsername={lockDialogInfo.username}
             onClose={() => setShowLockDialog(false)}
             onEditOther={() => {
               setShowLockDialog(false);
