@@ -13,18 +13,21 @@ import { Loader2 } from "lucide-react";
 
 interface FileUploadProps {
   onSuccess: (res: any) => void;
+  onFileSelect?: () => void;
   onProgress?: (progress: number) => void;
   fileType?: "image" | "video";
 }
 
 export default function FileUpload({
   onSuccess,
+  onFileSelect,
   onProgress,
   fileType = "image",
 }: FileUploadProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fileName, setFileName] = useState("");
   const abortController = new AbortController();
 
   const validateFile = (file: File) => {
@@ -122,14 +125,18 @@ export default function FileUpload({
           type="file"
           accept={fileType === "video" ? "video/*" : "image/*"}
           className="hidden"
-          onChange={() => setError(null)}
+          onChange={(event) => {
+            setError(null);
+            setFileName(event.target.files?.[0]?.name || "");
+            onFileSelect?.();
+          }}
         />
         <button
           type="button"
           onClick={() => fileInputRef.current?.click()}
           className="w-full border-4 border-[#1A1A1A] bg-white p-4 font-black uppercase tracking-widest shadow-[4px_4px_0px_0px_#1A1A1A] hover:bg-[#FFD700] transition-colors"
         >
-          {fileInputRef.current?.files?.[0]?.name || `SELECT_${fileType.toUpperCase()}_FILE`}
+          {fileName || `SELECT_${fileType.toUpperCase()}_FILE`}
         </button>
       </div>
 

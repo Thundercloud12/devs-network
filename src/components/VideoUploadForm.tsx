@@ -30,6 +30,7 @@ export default function MediaUploadForm() {
     register,
     handleSubmit,
     setValue,
+    watch,
     formState: { errors },
   } = useForm<MediaFormData>({
     defaultValues: {
@@ -190,8 +191,15 @@ export default function MediaUploadForm() {
                   &gt; Raw_Assets
                 </label>
                 <FileUpload
+                  key={mediaType}
                   fileType={mediaType}
                   onSuccess={handleUploadSuccess}
+                  onFileSelect={() => {
+                    setValue("mediaUrl", "");
+                    setValue("thumbnailUrl", "");
+                    setValue("imagekitFileId", "");
+                    setUploadProgress(0);
+                  }}
                   onProgress={handleUploadProgress}
                 />
 
@@ -212,7 +220,7 @@ export default function MediaUploadForm() {
               <button
                 type="submit"
                 className="w-full border-4 border-[#1A1A1A] bg-[#1A1A1A] py-5 text-xl font-black uppercase tracking-widest text-[#39FF14] shadow-[8px_8px_0px_0px_#1A1A1A] transition-all hover:-translate-y-1 hover:translate-x-1 hover:shadow-[12px_12px_0px_0px_#1A1A1A] active:translate-x-0 active:translate-y-0 active:shadow-none disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500 disabled:shadow-none"
-                disabled={loading || !uploadProgress}
+                disabled={loading || !watch("mediaUrl")}
               >
                 {loading ? (
                   <span className="flex items-center justify-center gap-2">

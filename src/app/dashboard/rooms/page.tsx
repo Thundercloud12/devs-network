@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useEffect, useState, useRef } from 'react';
 import { FaPlus } from 'react-icons/fa';
 import { RiCloseLine } from 'react-icons/ri';
+import { useNotification } from '@/components/Notification';
 
 export default function RoomsList() {
   type Room = {
@@ -25,20 +26,28 @@ export default function RoomsList() {
   const [language, setLanguage] = useState('javascript');
   const [code, setCode] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [isCreating, setIsCreating] = useState(false);
+  const [isCleaning, setIsCleaning] = useState(false);
   const dialogRef = useRef<HTMLDialogElement>(null);
   const { data: session } = useSession();
+  const { showNotification } = useNotification();
 
   useEffect(() => {
     fetch('/api/rooms')
-      .then((res) => res.json())
-      .then((data) => {
+      .then(async (res) => {
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Could not load rooms.');
         setRooms(data.rooms);
-      });
+      })
+      .catch((error) => setError(error instanceof Error ? error.message : 'Could not load rooms.'))
+      .finally(() => setLoading(false));
   }, []);
 
   async function handleCreate() {
     if (!session?.user?.id) {
-      alert('Please log in first!');
+      showNotification('Please log in first.', 'error');
       return;
     }
     const payload = {
@@ -46,18 +55,39 @@ export default function RoomsList() {
       description,
       language,
       code,
-      host: session.user.id!,
-      isLive: true,
     };
-    const res = await fetch('/api/rooms', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-    const room = await res.json();
-    alert(`Room Created: ${room.title}`);
-    setRooms((prev) => [room, ...prev]);
-    resetModal();
+    setIsCreating(true);
+    try {
+      const res = await fetch('/api/rooms', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const room = await res.json();
+      if (!res.ok) throw new Error(room.error || 'Could not create room.');
+      setRooms((prev) => [room, ...prev]);
+      showNotification(`Room created: ${room.title}`, 'success');
+      resetModal();
+    } catch (error) {
+      showNotification(error instanceof Error ? error.message : 'Could not create room.', 'error');
+    } finally {
+      setIsCreating(false);
+    }
+  }
+
+  async function cleanupClosedRooms() {
+    if (!window.confirm('Permanently delete your closed rooms?')) return;
+    setIsCleaning(true);
+    try {
+      const res = await fetch('/api/rooms', { method: 'DELETE' });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Could not clean up rooms.');
+      showNotification(`Removed ${data.deletedCount} closed room(s).`, 'success');
+    } catch (error) {
+      showNotification(error instanceof Error ? error.message : 'Could not clean up rooms.', 'error');
+    } finally {
+      setIsCleaning(false);
+    }
   }
 
   function resetModal() {
@@ -80,17 +110,32 @@ export default function RoomsList() {
               </h2>
               <p className="mt-4 font-bold text-[#FF5722]">&gt; COLLABORATE_IN_REALTIME</p>
             </div>
-            <button
-              onClick={() => setModalOpen(true)}
-              className="flex items-center gap-3 border-4 border-[#1A1A1A] bg-[#39FF14] px-8 py-4 font-black uppercase tracking-widest shadow-[8px_8px_0px_0px_#1A1A1A] transition-all hover:-translate-y-1 hover:translate-x-1 hover:shadow-[12px_12px_0px_0px_#1A1A1A] active:translate-x-0 active:translate-y-0 active:shadow-none"
-            >
-              <FaPlus />
-              CREATE_ROOM
-            </button>
+            <div className="flex flex-wrap gap-4">
+              <button
+                onClick={cleanupClosedRooms}
+                disabled={isCleaning}
+                className="border-4 border-[#1A1A1A] bg-[#FF5722] px-6 py-4 font-black uppercase tracking-widest text-white shadow-[8px_8px_0px_0px_#1A1A1A] disabled:opacity-50"
+              >
+                {isCleaning ? 'CLEANING...' : 'PURGE_CLOSED_ROOMS'}
+              </button>
+              <button
+                onClick={() => setModalOpen(true)}
+                className="flex items-center gap-3 border-4 border-[#1A1A1A] bg-[#39FF14] px-8 py-4 font-black uppercase tracking-widest shadow-[8px_8px_0px_0px_#1A1A1A] transition-all hover:-translate-y-1 hover:translate-x-1 hover:shadow-[12px_12px_0px_0px_#1A1A1A] active:translate-x-0 active:translate-y-0 active:shadow-none"
+              >
+                <FaPlus />
+                CREATE_ROOM
+              </button>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-            {rooms.map((room) => (
+            {loading && (
+              <div className="col-span-full border-4 border-[#1A1A1A] p-12 text-center font-black uppercase">LOADING_ROOMS...</div>
+            )}
+            {!loading && error && (
+              <div role="alert" className="col-span-full border-4 border-[#FF5722] p-12 text-center font-black uppercase text-[#FF5722]">{error}</div>
+            )}
+            {!loading && !error && rooms.map((room) => (
               <div
                 key={room._id}
                 className="group relative border-4 border-[#1A1A1A] bg-white p-6 shadow-[8px_8px_0px_0px_#1A1A1A] transition-all hover:-translate-y-1 hover:shadow-[12px_12px_0px_0px_#1A1A1A]"
@@ -109,7 +154,7 @@ export default function RoomsList() {
               </div>
             ))}
 
-            {rooms.length === 0 && (
+            {!loading && !error && rooms.length === 0 && (
               <div className="col-span-full border-4 border-dashed border-[#1A1A1A] p-20 text-center">
                 <p className="text-xl font-black uppercase tracking-widest text-[#1A1A1A]/30">NO_ACTIVE_ROOMS_FOUND</p>
               </div>
@@ -189,10 +234,11 @@ export default function RoomsList() {
                   </div>
 
                   <button
+                    disabled={isCreating}
                     className="w-full border-4 border-[#1A1A1A] bg-[#39FF14] py-4 text-xl font-black uppercase tracking-widest shadow-[6px_6px_0px_0px_#1A1A1A] transition-all hover:-translate-y-1 hover:translate-x-1 hover:shadow-[10px_10px_0px_0px_#1A1A1A] active:translate-x-0 active:translate-y-0 active:shadow-none"
                     type="submit"
                   >
-                    DEPLOY_ROOM
+                    {isCreating ? 'DEPLOYING...' : 'DEPLOY_ROOM'}
                   </button>
                 </form>
               </div>

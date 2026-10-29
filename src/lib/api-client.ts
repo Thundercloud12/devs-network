@@ -34,13 +34,18 @@ class ApiClient {
     const text = await response.text(); // read as raw text first
   
     
+    let data: any;
     try {
-      // Try parsing JSON from raw text
-      return JSON.parse(text);
+      data = JSON.parse(text);
     } catch (err) {
       console.error("Failed to parse JSON:", err);
       throw new Error(`Invalid JSON response: ${text}`);
     }
+
+    if (!response.ok) {
+      throw new Error(data.error || `Request failed (${response.status})`);
+    }
+    return data;
     
 
 
