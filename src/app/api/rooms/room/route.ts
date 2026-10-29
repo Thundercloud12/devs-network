@@ -3,6 +3,7 @@ import CodingRoom from "@/models/CodingRoom";
 import { connectDb } from "@/lib/dbConect";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { Types } from "mongoose";
 
 
 
@@ -50,7 +51,7 @@ export async function PUT(req: NextRequest) {
     if (!room) return NextResponse.json({ error: "Room not found" }, { status: 404 });
     if (!room.isLive) return NextResponse.json({ error: "Room is closed" }, { status: 410 });
     const canEdit = room.host.toString() === session.user.id ||
-      room.editorsAccess.some((editorId) => editorId.toString() === session.user.id);
+      room.editorsAccess.some((editorId: Types.ObjectId) => editorId.toString() === session.user.id);
     if (!canEdit) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     room.code = data.code;
     await room.save();

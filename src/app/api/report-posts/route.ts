@@ -7,23 +7,13 @@ import { NextRequest, NextResponse } from "next/server";
 import fetch from "node-fetch";
 import mime from "mime-types";
 
-
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY!;
-const IMAGEKIT_PRIVATE_API_KEY = process.env.IMAGEKIT_PRIVATE_KEY!;
-const IMAGEKIT_PUBLIC_API_KEY = process.env.IMAGEKIT_PUBLIC_KEY!;
-const IMAGEKIT_URL_ENDPOINT = process.env.IMAGEKIT_URL_ENDPOINT!;
-
-const imagekit = new ImageKit({
-  publicKey: IMAGEKIT_PUBLIC_API_KEY,
-  privateKey: IMAGEKIT_PRIVATE_API_KEY,
-  urlEndpoint: IMAGEKIT_URL_ENDPOINT,
-});
-
 export async function POST(req: NextRequest) {
-  const ai = new GoogleGenerativeAI(GEMINI_API_KEY);
-  const model = ai.getGenerativeModel({ model: "gemini-1.5-flash" });
-
   try {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) throw new Error("GEMINI_API_KEY is not configured");
+    const ai = new GoogleGenerativeAI(apiKey);
+    const model = ai.getGenerativeModel({ model: "gemini-1.5-flash" });
+
     const { postId } = await req.json();
     if (!postId) return NextResponse.json({ error: "Post ID missing" }, { status: 400 });
 
@@ -68,6 +58,11 @@ export async function POST(req: NextRequest) {
     if (isObjectionable) {
       if (post.imagekitFileId) {
         try {
+          const imagekit = new ImageKit({
+            publicKey: process.env.IMAGEKIT_PUBLIC_KEY!,
+            privateKey: process.env.IMAGEKIT_PRIVATE_KEY!,
+            urlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT!,
+          });
           await imagekit.deleteFile(post.imagekitFileId);
           console.log("Image deleted from ImageKit");
         } catch (err) {

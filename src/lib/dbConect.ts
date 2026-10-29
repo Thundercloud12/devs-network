@@ -1,11 +1,5 @@
 import mongoose, { Connection } from "mongoose";
 
-const MONGODB_URL = process.env.MONGODB_URL!;
-
-if (!MONGODB_URL) {
-  throw new Error("Please define MONGODB_URL in your environment variables");
-}
-
 // Extend globalThis to avoid using `var`
 declare global {
   interface Global {
@@ -35,6 +29,11 @@ const cached = globalWithMongoose._mongoose;
 
 export async function connectDb(): Promise<Connection> {
   if (cached.conn) return cached.conn;
+
+  const MONGODB_URL = process.env.MONGODB_URL;
+  if (!MONGODB_URL) {
+    throw new Error("Please define MONGODB_URL in your environment variables");
+  }
 
   if (!cached.promise) {
     cached.promise = mongoose.connect(MONGODB_URL, {
